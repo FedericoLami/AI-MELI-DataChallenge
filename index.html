@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeLi Inventory Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --meli-yellow: #ffe600;
+      --meli-yellow-dark: #f0d800;
+      --meli-blue: #2d3277;
+      --meli-blue-light: #3d44a0;
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --surface-2: #f8f8f8;
+      --border: #e8e8e8;
+      --border-2: #d0d0d0;
+      --text: #1a1a2e;
+      --text-2: #4a4a6a;
+      --text-3: #8a8aaa;
+      --danger: #e53935;
+      --danger-light: #fdecea;
+      --success: #43a047;
+      --success-light: #e8f5e9;
+      --warning: #f57c00;
+      --warning-light: #fff3e0;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      height: 60px;
+      background: var(--meli-blue);
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .logo-meli {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      background: var(--meli-yellow);
+      color: var(--meli-blue);
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      font-family: var(--mono);
+    }
+
+    .logo-title {
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .logo-subtitle {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.72rem;
+      font-family: var(--mono);
+    }
+
+    .header-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .api-badge {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--meli-yellow);
+      border: 1px solid rgba(255,230,0,0.3);
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.6);
+      font-family: var(--mono);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4caf50;
+      box-shadow: 0 0 6px #4caf50;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* PROGRESS */
+    .progress {
+      height: 3px;
+      background: var(--meli-blue-light);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--meli-yellow);
+      width: 0;
+    }
+
+    .progress-fill.active {
+      animation: progress 1.5s ease-in-out infinite;
+    }
+
+    @keyframes progress {
+      0% { transform: translateX(-100%); width: 60%; }
+      100% { transform: translateX(200%); width: 60%; }
+    }
+
+    /* LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 1.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .section-title {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    .kpi-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+
+    .kpi-label {
+      font-size: 0.65rem;
+      color: var(--text-3);
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+
+    .kpi-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--meli-blue);
+      font-family: var(--mono);
+    }
+
+    .kpi-card.danger .kpi-value { color: var(--danger); }
+    .kpi-card.warning .kpi-value { color: var(--warning); }
+    .kpi-card.success .kpi-value { color: var(--success); }
+
+    .suggestion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .suggestion {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.75rem;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+
+    .suggestion:hover {
+      background: var(--meli-yellow);
+      border-color: var(--meli-yellow-dark);
+      color: var(--meli-blue);
+      font-weight: 500;
+    }
+
+    .tools-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .tool-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.6rem 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .tool-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--meli-blue);
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .tool-name {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--meli-blue);
+      margin-bottom: 0.15rem;
+      font-weight: 500;
+    }
+
+    .tool-desc {
+      font-size: 0.68rem;
+      color: var(--text-3);
+      line-height: 1.4;
+    }
+
+    /* MAIN */
+    .main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      scroll-behavior: smooth;
+      min-height: 0;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 1rem;
+      color: var(--text-3);
+      padding: 4rem;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+
+    .empty-sub {
+      font-size: 0.8rem;
+      max-width: 320px;
+      line-height: 1.7;
+    }
+
+    /* MESSAGES */
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      animation: fadeUp 0.25s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .msg-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .msg-avatar.user {
+      background: var(--border);
+      color: var(--text-2);
+    }
+
+    .msg-avatar.agent {
+      background: var(--meli-blue);
+      color: var(--meli-yellow);
+    }
+
+    .msg-role {
+      font-size: 0.68rem;
+      font-family: var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .msg-bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      line-height: 1.75;
+      color: var(--text);
+      max-width: 820px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message.user .msg-bubble {
+      background: var(--meli-blue);
+      color: white;
+      border-color: var(--meli-blue-light);
+      align-self: flex-end;
+      max-width: 600px;
+    }
+
+    .msg-bubble table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.75rem 0;
+      font-size: 0.8rem;
+    }
+
+    .msg-bubble th {
+      background: var(--meli-blue);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+    }
+
+    .msg-bubble td {
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+    }
+
+    .msg-bubble tr:nth-child(even) td {
+      background: var(--surface-2);
+    }
+
+    .msg-bubble strong { color: var(--meli-blue); font-weight: 600; }
+
+    /* TYPING */
+    .typing-bubble {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      padding: 0.5rem 0;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--meli-blue);
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .error-msg {
+      background: var(--danger-light);
+      border: 1px solid rgba(229,57,53,0.2);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.78rem;
+      color: var(--danger);
+      font-family: var(--mono);
+    }
+
+    /* INPUT BAR */
+    .input-bar {
+      border-top: 1px solid var(--border);
+      padding: 1rem 2rem;
+      background: var(--surface);
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+
+    .input-wrap { flex: 1; }
+
+    textarea {
+      width: 100%;
+      background: var(--surface-2);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      padding: 0.75rem 1rem;
+      resize: none;
+      height: 48px;
+      max-height: 160px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { border-color: var(--meli-blue); }
+    textarea::placeholder { color: var(--text-3); }
+
+    .input-hint {
+      font-size: 0.65rem;
+      color: var(--text-3);
+      margin-top: 0.4rem;
+      font-family: var(--mono);
+    }
+
+    .btn-send {
+      width: 48px;
+      height: 48px;
+      background: var(--meli-yellow);
+      border: none;
+      border-radius: 10px;
+      color: var(--meli-blue);
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-send:hover { opacity: 0.85; }
+    .btn-send:active { transform: scale(0.95); }
+    .btn-send:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-meli">
+    <div class="logo-badge">MeLi</div>
+    <div>
+      <div class="logo-title">Inventory Intelligence Agent</div>
+      <div class="logo-subtitle">551,472 SKUs · Monte Carlo · Claude AI</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="api-badge">claude haiku · tool use</div>
+    <div class="status">
+      <div class="status-dot"></div>
+      <span>activo</span>
+    </div>
+  </div>
+</header>
+
+<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div>
+      <div class="section-title">Resumen del catálogo</div>
+      <div class="kpi-grid">
+        <div class="kpi-card danger">
+          <div class="kpi-label">Riesgo 7 días</div>
+          <div class="kpi-value">27%</div>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">Riesgo 15 días</div>
+          <div class="kpi-value">48%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total SKUs</div>
+          <div class="kpi-value">551K</div>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Cobertura</div>
+          <div class="kpi-value">100%</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Preguntas sugeridas</div>
+      <div class="suggestion-list">
+        <div class="suggestion" onclick="usarSugerencia(this)">Dame un resumen del catálogo</div>
+        <div class="suggestion" onclick="usarSugerencia(this)">¿Cuáles son los 10 productos más críticos?</div>
+        <div class="suggestion" onclick="usarSugerencia(this)">¿Qué productos se agotan antes de 7 días?</div>
+        <div class="suggestion" onclick="usarSugerencia(this)">Analizá el SKU 464801</div>
+        <div class="suggestion" onclick="usarSugerencia(this)">¿Cuántos SKUs tienen riesgo alto en 15 días?</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Herramientas del agente</div>
+      <div class="tools-list">
+        <div class="tool-item">
+          <div class="tool-dot"></div>
+          <div>
+            <div class="tool-name">productos_en_riesgo</div>
+            <div class="tool-desc">SKUs ordenados por riesgo hasta N días</div>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-dot"></div>
+          <div>
+            <div class="tool-name">top_criticos</div>
+            <div class="tool-desc">Top N productos con mayor riesgo en 7 días</div>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-dot"></div>
+          <div>
+            <div class="tool-name">analizar_sku</div>
+            <div class="tool-desc">Distribución completa de un SKU específico</div>
+          </div>
+        </div>
+        <div class="tool-item">
+          <div class="tool-dot"></div>
+          <div>
+            <div class="tool-name">resumen_catalogo</div>
+            <div class="tool-desc">Métricas globales del inventario</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="chat-area" id="chatArea">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title">Agente de Inventario MercadoLibre</div>
+        <div class="empty-sub">Hacé preguntas en lenguaje natural sobre el riesgo de quiebre de stock. El agente analiza 551,472 SKUs usando predicciones Monte Carlo.</div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea
+          id="inputMsg"
+          placeholder="Preguntá sobre el inventario..."
+          rows="1"
+        ></textarea>
+        <div class="input-hint">Enter para enviar · Shift+Enter para nueva línea</div>
+      </div>
+      <button class="btn-send" id="btnSend" onclick="enviar()">↑</button>
+    </div>
+  </main>
+</div>
+
+<script>
+  const API = 'http://127.0.0.1:8000'
+
+  function setLoading(active) {
+    document.getElementById('progressFill').className = active ? 'progress-fill active' : 'progress-fill'
+    document.getElementById('btnSend').disabled = active
+    document.getElementById('inputMsg').disabled = active
+  }
+
+  function usarSugerencia(el) {
+    document.getElementById('inputMsg').value = el.textContent
+    document.getElementById('inputMsg').focus()
+  }
+
+  function parseMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code style="font-family:var(--mono);font-size:0.78rem;background:#f0f0f8;padding:0.1rem 0.4rem;border-radius:4px;color:var(--meli-blue)">' + '$1' + '</code>')
+      .replace(/\|(.+)\|/g, (match) => {
+        const cells = match.split('|').filter(c => c.trim())
+        if (cells.every(c => /^[-\s]+$/.test(c))) return ''
+        const isHeader = cells.some(c => c.includes('**'))
+        const tag = isHeader ? 'th' : 'td'
+        return '<tr>' + cells.map(c => `<${tag}>${c.trim().replace(/\*\*/g, '')}</${tag}>`).join('') + '</tr>'
+      })
+      .replace(/(<tr>.*<\/tr>\n?)+/gs, (match) => `<table>${match}</table>`)
+  }
+
+  function agregarMensaje(role, texto) {
+    const empty = document.getElementById('emptyState')
+    if (empty) empty.remove()
+
+    const chat = document.getElementById('chatArea')
+    const div = document.createElement('div')
+    div.className = `message ${role}`
+
+    const label = role === 'user' ? 'vos' : 'agente'
+    const avatarText = role === 'user' ? 'U' : 'ML'
+
+    div.innerHTML = `
+      <div class="msg-header">
+        <div class="msg-avatar ${role}">${avatarText}</div>
+        <span class="msg-role">${label}</span>
+      </div>
+      <div class="msg-bubble">${role === 'agent' ? parseMarkdown(texto) : texto}</div>
+    `
+    chat.appendChild(div)
+    chat.scrollTop = chat.scrollHeight
+    return div
+  }
+
+  function agregarTyping() {
+    const empty = document.getElementById('emptyState')
+    if (empty) empty.remove()
+
+    const chat = document.getElementById('chatArea')
+    const div = document.createElement('div')
+    div.className = 'message agent'
+    div.innerHTML = `
+      <div class="msg-header">
+        <div class="msg-avatar agent">ML</div>
+        <span class="msg-role">agente · analizando</span>
+      </div>
+      <div class="msg-bubble">
+        <div class="typing-bubble">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    `
+    chat.appendChild(div)
+    chat.scrollTop = chat.scrollHeight
+    return div
+  }
+
+  function agregarError(msg) {
+    const chat = document.getElementById('chatArea')
+    const div = document.createElement('div')
+    div.className = 'error-msg'
+    div.textContent = `error: ${msg}`
+    chat.appendChild(div)
+    chat.scrollTop = chat.scrollHeight
+  }
+
+  async function enviar() {
+    const input = document.getElementById('inputMsg')
+    const texto = input.value.trim()
+    if (!texto) return
+
+    agregarMensaje('user', texto)
+    input.value = ''
+    input.style.height = '48px'
+
+    const typing = agregarTyping()
+    setLoading(true)
+
+    try {
+      const res = await fetch(`${API}/analizar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensaje: texto })
+      })
+
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const respuesta = await res.json()
+      typing.remove()
+      agregarMensaje('agent', respuesta)
+
+    } catch (e) {
+      typing.remove()
+      agregarError('No se pudo conectar con el servidor. Verificá que esté corriendo.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  document.getElementById('inputMsg').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      enviar()
+    }
+  })
+
+  document.getElementById('inputMsg').addEventListener('input', function() {
+    this.style.height = '48px'
+    this.style.height = Math.min(this.scrollHeight, 160) + 'px'
+  })
+</script>
+</body>
+</html>
